@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -224,7 +225,67 @@ footer{text-align:center;padding:36px 0 28px;color:var(--muted);font-size:11px;b
 .p2p-prog-fill{height:100%;background:linear-gradient(90deg,var(--a3),var(--a4));border-radius:2px;transition:width .3s}
 .p2p-prog-txt{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center}
 
-.pdf-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.btn-pick-enhance{background:linear-gradient(135deg,#ff9f43,#e67e22)!important;color:#fff!important}
+.btn-pick-enhance:hover{box-shadow:0 6px 20px rgba(255,159,67,.4)!important}
+
+/* ── IMAGE ENHANCER ── */
+.enh-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.96);flex-direction:column}
+.enh-overlay.vis{display:flex}
+.enh-header{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;gap:12px;flex-wrap:wrap}
+.enh-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#ff9f43,#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.enh-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-ea{padding:9px 18px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid}
+.btn-ea.cancel{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ea.cancel:hover{border-color:var(--a3);color:var(--a3)}
+.btn-ea.reset{background:transparent;color:var(--muted);border-color:var(--border)}
+.btn-ea.reset:hover{border-color:var(--border2);color:var(--text)}
+.btn-ea.save{background:linear-gradient(135deg,#ff9f43,#e67e22);color:#fff;border-color:transparent}
+.btn-ea.save:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,159,67,.4)}
+.btn-ea.save:disabled{opacity:.45;cursor:not-allowed}
+
+.enh-body{flex:1;display:flex;overflow:hidden;gap:0}
+.enh-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden;gap:12px;flex-direction:column}
+.enh-compare{display:flex;gap:10px;width:100%;height:100%;align-items:center;justify-content:center;max-height:calc(100vh - 200px)}
+.enh-img-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;max-height:100%}
+.enh-img-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center}
+.enh-img-label.or{color:#ff9f43}
+.enh-img-label.re{color:var(--accent)}
+.enh-canvas-box{flex:1;display:flex;align-items:center;justify-content:center;background:#050510;border-radius:10px;border:1px solid var(--border);overflow:hidden;min-height:0}
+.enh-canvas-box canvas,.enh-canvas-box img{max-width:100%;max-height:100%;display:block;object-fit:contain}
+
+.enh-side{width:260px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.enh-section{padding:16px;border-bottom:1px solid var(--border)}
+.enh-section-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+
+/* Mode pills */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px}
+.mode-pill{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 8px;cursor:pointer;transition:all .2s;text-align:center}
+.mode-pill:hover{border-color:var(--border2)}
+.mode-pill.active{border-color:#ff9f43;background:rgba(255,159,67,.08)}
+.mode-pill-icon{font-size:18px;display:block;margin-bottom:3px}
+.mode-pill-name{font-size:11px;font-weight:600;color:var(--muted)}
+.mode-pill.active .mode-pill-name{color:#ff9f43}
+
+/* Sliders */
+.enh-sgroup{display:flex;flex-direction:column;gap:11px}
+.enh-sitem{display:flex;flex-direction:column;gap:4px}
+.enh-shdr{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.enh-sval{color:#ff9f43;font-weight:600;font-family:'DM Mono',monospace}
+.enh-range{-webkit-appearance:none;width:100%;height:3px;background:var(--border);border-radius:2px;outline:none}
+.enh-range::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:#ff9f43;border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,159,67,.4)}
+
+/* Progress */
+.enh-progress{padding:10px 20px;border-top:1px solid var(--border);flex-shrink:0;display:none;align-items:center;gap:10px}
+.enh-progress.vis{display:flex}
+.enh-prog-bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.enh-prog-fill{height:100%;background:linear-gradient(90deg,#ff9f43,#ff6b6b);transition:width .3s}
+.enh-prog-txt{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap}
+
+/* Thumbnails strip */
+.enh-pages{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--border);flex-shrink:0;scrollbar-width:thin}
+.enh-thumb{flex-shrink:0;width:52px;border-radius:6px;overflow:hidden;border:2px solid var(--border);cursor:pointer;transition:all .2s}
+.enh-thumb.active{border-color:#ff9f43}
+.enh-thumb img{width:100%;display:block;aspect-ratio:1;object-fit:cover}
 .pdf-panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .pdf-panel-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--a2)}
 .pdf-info-badge{background:rgba(123,95,255,.12);color:var(--a2);border:1px solid rgba(123,95,255,.3);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace}
@@ -339,6 +400,127 @@ footer{text-align:center;padding:36px 0 28px;color:var(--muted);font-size:11px;b
   </div>
 </div>
 
+<!-- ── IMAGE ENHANCER OVERLAY ──────────────── -->
+<div class="enh-overlay" id="enh-overlay">
+  <div class="enh-header">
+    <div class="enh-title">🔥 Image Enhancer</div>
+    <div class="enh-actions">
+      <button class="btn-ea reset" onclick="enhReset()">↩ Restablecer</button>
+      <button class="btn-ea cancel" onclick="enhCancel()">Cancelar</button>
+      <button class="btn-ea save" id="btn-enh-save" onclick="enhSave()">💾 Guardar</button>
+    </div>
+  </div>
+
+  <!-- Thumbnail strip (multi-image) -->
+  <div class="enh-pages" id="enh-pages" style="display:none"></div>
+
+  <div class="enh-body">
+    <!-- Before / After compare -->
+    <div class="enh-stage">
+      <div class="enh-compare">
+        <div class="enh-img-wrap">
+          <div class="enh-img-label or">Antes</div>
+          <div class="enh-canvas-box">
+            <canvas id="enh-before"></canvas>
+          </div>
+        </div>
+        <div class="enh-img-wrap">
+          <div class="enh-img-label re">Después</div>
+          <div class="enh-canvas-box">
+            <canvas id="enh-after"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="enh-side">
+
+      <div class="enh-section">
+        <div class="enh-section-title">Enhancement Mode</div>
+        <div class="mode-grid">
+          <div class="mode-pill active" id="em-auto" onclick="enhMode('auto')">
+            <span class="mode-pill-icon">✨</span>
+            <span class="mode-pill-name">Auto</span>
+          </div>
+          <div class="mode-pill" id="em-document" onclick="enhMode('document')">
+            <span class="mode-pill-icon">📄</span>
+            <span class="mode-pill-name">Documento</span>
+          </div>
+          <div class="mode-pill" id="em-photo" onclick="enhMode('photo')">
+            <span class="mode-pill-icon">🌄</span>
+            <span class="mode-pill-name">Foto</span>
+          </div>
+          <div class="mode-pill" id="em-bw" onclick="enhMode('bw')">
+            <span class="mode-pill-icon">⚫</span>
+            <span class="mode-pill-name">B&N</span>
+          </div>
+          <div class="mode-pill" id="em-vivid" onclick="enhMode('vivid')">
+            <span class="mode-pill-icon">🎨</span>
+            <span class="mode-pill-name">Vívido</span>
+          </div>
+          <div class="mode-pill" id="em-lowlight" onclick="enhMode('lowlight')">
+            <span class="mode-pill-icon">🌙</span>
+            <span class="mode-pill-name">Poca luz</span>
+          </div>
+          <div class="mode-pill" id="em-restore" onclick="enhMode('restore')">
+            <span class="mode-pill-icon">🔄</span>
+            <span class="mode-pill-name">Restaurar</span>
+          </div>
+          <div class="mode-pill" id="em-manual" onclick="enhMode('manual')">
+            <span class="mode-pill-icon">🎛️</span>
+            <span class="mode-pill-name">Manual</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="enh-section">
+        <div class="enh-section-title">Ajuste fino</div>
+        <div class="enh-sgroup">
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>☀️ Brillo</span><span class="enh-sval" id="ev-bright">0</span></div>
+            <input class="enh-range" id="er-bright" type="range" min="-100" max="100" value="0" oninput="enhSlider('bright',this.value)">
+          </div>
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>🌗 Contraste</span><span class="enh-sval" id="ev-contrast">0</span></div>
+            <input class="enh-range" id="er-contrast" type="range" min="-100" max="100" value="0" oninput="enhSlider('contrast',this.value)">
+          </div>
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>✨ Nitidez</span><span class="enh-sval" id="ev-sharp">0</span></div>
+            <input class="enh-range" id="er-sharp" type="range" min="0" max="100" value="0" oninput="enhSlider('sharp',this.value)">
+          </div>
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>🎨 Saturación</span><span class="enh-sval" id="ev-sat">0</span></div>
+            <input class="enh-range" id="er-sat" type="range" min="-100" max="100" value="0" oninput="enhSlider('sat',this.value)">
+          </div>
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>🌡️ Temperatura</span><span class="enh-sval" id="ev-temp">0</span></div>
+            <input class="enh-range" id="er-temp" type="range" min="-100" max="100" value="0" oninput="enhSlider('temp',this.value)">
+          </div>
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>🌫️ Reducir ruido</span><span class="enh-sval" id="ev-denoise">0</span></div>
+            <input class="enh-range" id="er-denoise" type="range" min="0" max="100" value="0" oninput="enhSlider('denoise',this.value)">
+          </div>
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>🔆 Sombras</span><span class="enh-sval" id="ev-shadows">0</span></div>
+            <input class="enh-range" id="er-shadows" type="range" min="-100" max="100" value="0" oninput="enhSlider('shadows',this.value)">
+          </div>
+          <div class="enh-sitem">
+            <div class="enh-shdr"><span>⬜ Blancos</span><span class="enh-sval" id="ev-whites">0</span></div>
+            <input class="enh-range" id="er-whites" type="range" min="-100" max="100" value="0" oninput="enhSlider('whites',this.value)">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="enh-progress" id="enh-progress">
+    <div class="enh-prog-bar"><div class="enh-prog-fill" id="enh-prog-fill"></div></div>
+    <div class="enh-prog-txt" id="enh-prog-txt">Aplicando mejoras...</div>
+  </div>
+</div>
+
 <div class="wrap">
 <header>
   <div class="logo">
@@ -443,12 +625,14 @@ footer{text-align:center;padding:36px 0 28px;color:var(--muted);font-size:11px;b
     <button class="btn-pick" onclick="document.getElementById('finput').click()">Seleccionar imagen(es)</button>
     <button class="btn-pick btn-pick-pdf" onclick="document.getElementById('pdfinput').click()">📄 PDF → PNG</button>
     <button class="btn-pick btn-pick-png2pdf" onclick="document.getElementById('png2pdfinput').click()">🖼️ PNG → PDF</button>
+    <button class="btn-pick btn-pick-enhance" onclick="document.getElementById('enhanceinput').click()">🔥 Image Enhancer</button>
   </div>
 </div>
 
 <input type="file" id="finput" accept="image/*" multiple style="display:none">
 <input type="file" id="pdfinput" accept="application/pdf" style="display:none">
 <input type="file" id="png2pdfinput" accept="image/*" multiple style="display:none">
+<input type="file" id="enhanceinput" accept="image/*" multiple style="display:none">
 
 <div class="pages-strip" id="pstrip"></div>
 
@@ -1652,7 +1836,273 @@ function perspApply(){
 }
 
 // ─── Helpers ──────────────────────────────────────────────
-function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+// ─── IMAGE ENHANCER ──────────────────────────────────────
+let enhImgs = [], enhCurIdx = 0;
+let enhParams = { bright:0, contrast:0, sharp:0, sat:0, temp:0, denoise:0, shadows:0, whites:0 };
+let enhTimer = null;
+
+const ENH_MODES = {
+  auto:     { bright:10, contrast:15, sharp:40, sat:10,  temp:5,   denoise:20, shadows:15,  whites:10 },
+  document: { bright:20, contrast:40, sharp:60, sat:-60, temp:0,   denoise:30, shadows:20,  whites:30 },
+  photo:    { bright:5,  contrast:10, sharp:20, sat:20,  temp:10,  denoise:15, shadows:10,  whites:5  },
+  bw:       { bright:5,  contrast:25, sharp:30, sat:-100,temp:0,   denoise:20, shadows:5,   whites:10 },
+  vivid:    { bright:5,  contrast:20, sharp:25, sat:60,  temp:15,  denoise:0,  shadows:10,  whites:5  },
+  lowlight: { bright:50, contrast:10, sharp:20, sat:10,  temp:-10, denoise:50, shadows:60,  whites:0  },
+  restore:  { bright:15, contrast:20, sharp:50, sat:5,   temp:0,   denoise:60, shadows:20,  whites:15 },
+  manual:   { bright:0,  contrast:0,  sharp:0,  sat:0,   temp:0,   denoise:0,  shadows:0,   whites:0  },
+};
+
+document.getElementById('enhanceinput').addEventListener('change', e => {
+  if (e.target.files.length) openEnhancer(e.target.files);
+  e.target.value = '';
+});
+
+function openEnhancer(files) {
+  const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if (!arr.length) return;
+  enhImgs = []; enhCurIdx = 0;
+  let loaded = 0;
+  arr.forEach(f => {
+    const r = new FileReader();
+    r.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        enhImgs.push({ img, url: ev.target.result, name: f.name, resultURL: null });
+        loaded++;
+        if (loaded === arr.length) {
+          document.getElementById('enh-overlay').classList.add('vis');
+          enhMode('auto');
+          renderEnhThumbs();
+          loadEnhImage(0);
+        }
+      };
+      img.src = ev.target.result;
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function renderEnhThumbs() {
+  const strip = document.getElementById('enh-pages');
+  if (enhImgs.length <= 1) { strip.style.display = 'none'; return; }
+  strip.style.display = 'flex';
+  strip.innerHTML = '';
+  enhImgs.forEach((it, i) => {
+    const d = document.createElement('div');
+    d.className = 'enh-thumb' + (i === enhCurIdx ? ' active' : '');
+    d.innerHTML = `<img src="${it.url}">`;
+    d.onclick = () => loadEnhImage(i);
+    strip.appendChild(d);
+  });
+}
+
+function loadEnhImage(idx) {
+  enhCurIdx = idx;
+  renderEnhThumbs();
+  const { img } = enhImgs[idx];
+  // Draw "before" canvas
+  const bc = document.getElementById('enh-before');
+  const stage = bc.parentElement.parentElement;
+  const maxW = Math.min(stage.clientWidth / 2 - 20, img.naturalWidth);
+  const maxH = Math.min(stage.clientHeight - 20, img.naturalHeight);
+  const sc = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+  bc.width = Math.round(img.naturalWidth * sc);
+  bc.height = Math.round(img.naturalHeight * sc);
+  bc.getContext('2d').drawImage(img, 0, 0, bc.width, bc.height);
+  // Apply current params to after canvas
+  applyEnhancement();
+}
+
+function enhMode(mode) {
+  // Highlight selected pill
+  document.querySelectorAll('.mode-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('em-' + mode).classList.add('active');
+  // Set sliders
+  const preset = ENH_MODES[mode];
+  Object.assign(enhParams, preset);
+  // Update UI
+  Object.entries(preset).forEach(([k, v]) => {
+    const sl = document.getElementById('er-' + k);
+    const vl = document.getElementById('ev-' + k);
+    if (sl) sl.value = v;
+    if (vl) vl.textContent = v > 0 ? '+' + v : v;
+  });
+  scheduleApply();
+}
+
+function enhSlider(key, val) {
+  enhParams[key] = parseInt(val);
+  const vl = document.getElementById('ev-' + key);
+  if (vl) vl.textContent = val > 0 ? '+' + val : val;
+  // Switch to manual mode indicator
+  document.querySelectorAll('.mode-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('em-manual').classList.add('active');
+  scheduleApply();
+}
+
+function scheduleApply() {
+  clearTimeout(enhTimer);
+  enhTimer = setTimeout(applyEnhancement, 120);
+}
+
+function applyEnhancement() {
+  if (!enhImgs.length) return;
+  const { img } = enhImgs[enhCurIdx];
+  const { bright, contrast, sharp, sat, temp, denoise, shadows, whites } = enhParams;
+
+  const tmp = document.createElement('canvas');
+  tmp.width = img.naturalWidth; tmp.height = img.naturalHeight;
+  const ctx = tmp.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  let d = ctx.getImageData(0, 0, tmp.width, tmp.height);
+
+  // Shadows boost (lift darks)
+  if (shadows !== 0) {
+    const sf = shadows / 200;
+    for (let i = 0; i < d.data.length; i += 4) {
+      for (let c = 0; c < 3; c++) {
+        const v = d.data[i+c] / 255;
+        const lift = sf * (1 - v) * (1 - v); // affects darks more
+        d.data[i+c] = clamp(Math.round((v + lift) * 255), 0, 255);
+      }
+    }
+  }
+
+  // Whites adjustment
+  if (whites !== 0) {
+    const wf = whites / 200;
+    for (let i = 0; i < d.data.length; i += 4) {
+      for (let c = 0; c < 3; c++) {
+        const v = d.data[i+c] / 255;
+        const boost = wf * v * v; // affects highlights more
+        d.data[i+c] = clamp(Math.round((v + boost) * 255), 0, 255);
+      }
+    }
+  }
+
+  // Brightness
+  if (bright !== 0) {
+    const bf = bright * 1.5;
+    for (let i = 0; i < d.data.length; i += 4)
+      for (let c = 0; c < 3; c++)
+        d.data[i+c] = clamp(d.data[i+c] + bf, 0, 255);
+  }
+
+  // Contrast (S-curve)
+  if (contrast !== 0) {
+    const cf = (contrast + 100) / 100;
+    for (let i = 0; i < d.data.length; i += 4)
+      for (let c = 0; c < 3; c++)
+        d.data[i+c] = clamp(Math.round((d.data[i+c] - 128) * cf + 128), 0, 255);
+  }
+
+  // Saturation
+  if (sat !== 0) {
+    const sf2 = 1 + sat / 100;
+    for (let i = 0; i < d.data.length; i += 4) {
+      const r = d.data[i], g = d.data[i+1], b = d.data[i+2];
+      const gr = 0.299*r + 0.587*g + 0.114*b;
+      d.data[i]   = clamp(Math.round(gr + (r-gr)*sf2), 0, 255);
+      d.data[i+1] = clamp(Math.round(gr + (g-gr)*sf2), 0, 255);
+      d.data[i+2] = clamp(Math.round(gr + (b-gr)*sf2), 0, 255);
+    }
+  }
+
+  // Temperature (warm/cool)
+  if (temp !== 0) {
+    const tf = temp * 0.8;
+    for (let i = 0; i < d.data.length; i += 4) {
+      d.data[i]   = clamp(d.data[i]   + tf, 0, 255); // R up = warm
+      d.data[i+2] = clamp(d.data[i+2] - tf, 0, 255); // B down = warm
+    }
+  }
+
+  // Denoise (box blur on noisy channels)
+  if (denoise > 0) {
+    const W = tmp.width, H = tmp.height;
+    const radius = Math.round(denoise / 40); // 0-2px
+    if (radius > 0) {
+      const gs = new Float32Array(W*H);
+      for (let i = 0; i < W*H; i++) gs[i] = (d.data[i*4]+d.data[i*4+1]+d.data[i*4+2])/3;
+      const blurred = boxBlur(gs, W, H, radius);
+      const blend = denoise / 100;
+      for (let i = 0; i < W*H; i++) {
+        for (let c = 0; c < 3; c++) {
+          const orig = d.data[i*4+c];
+          d.data[i*4+c] = clamp(Math.round(orig*(1-blend) + blurred[i]*blend), 0, 255);
+        }
+      }
+    }
+  }
+
+  // Sharpness (unsharp mask)
+  if (sharp > 0) {
+    const src = new Uint8ClampedArray(d.data);
+    const amt = sharp / 100;
+    const K = [0,-1,0,-1,5,-1,0,-1,0];
+    const W = tmp.width, H = tmp.height;
+    for (let y=1;y<H-1;y++) for (let x=1;x<W-1;x++) {
+      const idx=(y*W+x)*4;
+      for (let c=0;c<3;c++) {
+        let s=0;for(let ky=-1;ky<=1;ky++)for(let kx=-1;kx<=1;kx++)s+=src[((y+ky)*W+(x+kx))*4+c]*K[(ky+1)*3+(kx+1)];
+        d.data[idx+c]=clamp(Math.round(src[idx+c]*(1-amt)+s*amt),0,255);
+      }
+    }
+  }
+
+  ctx.putImageData(d, 0, 0);
+
+  // Draw to after canvas (scaled)
+  const ac = document.getElementById('enh-after');
+  ac.width = document.getElementById('enh-before').width;
+  ac.height = document.getElementById('enh-before').height;
+  ac.getContext('2d').drawImage(tmp, 0, 0, ac.width, ac.height);
+
+  // Store result
+  enhImgs[enhCurIdx].resultURL = tmp.toDataURL('image/png');
+  enhImgs[enhCurIdx].resultCanvas = tmp;
+}
+
+function enhReset() {
+  enhMode('auto');
+}
+
+function enhCancel() {
+  document.getElementById('enh-overlay').classList.remove('vis');
+  enhImgs = [];
+}
+
+async function enhSave() {
+  const btn = document.getElementById('btn-enh-save');
+  btn.disabled = true;
+
+  // Process all images with current settings
+  for (let i = 0; i < enhImgs.length; i++) {
+    enhCurIdx = i;
+    applyEnhancement();
+    await delay(30);
+  }
+
+  if (enhImgs.length === 1) {
+    // Single image: save directly
+    const blob = dataURLtoBlob(enhImgs[0].resultURL);
+    const name = enhImgs[0].name.replace(/\.[^.]+$/, '') + '_enhanced.png';
+    await saveWithPicker(blob, name, 'image/png', 'Imagen PNG');
+  } else {
+    // Multiple: save as ZIP
+    if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    const zip = new JSZip();
+    enhImgs.forEach((it, i) => {
+      const name = it.name.replace(/\.[^.]+$/, '') + '_enhanced.png';
+      zip.file(name, it.resultURL.split(',')[1], { base64: true });
+    });
+    const blob = await zip.generateAsync({ type: 'blob' });
+    await saveWithPicker(blob, 'imagenes_mejoradas.zip', 'application/zip', 'Archivo ZIP');
+  }
+
+  btn.disabled = false;
+  document.getElementById('enh-overlay').classList.remove('vis');
+}
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
 
 // ─── PNG to PDF ───────────────────────────────────────────
