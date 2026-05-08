@@ -776,6 +776,22 @@ footer{text-align:center;padding:36px 0 28px;color:var(--muted);font-size:11px;b
 <footer>DocScan Pro v3 · Procesamiento local · Sin envío de datos</footer>
 
 <script>
+// ─── Core helpers (must be first) ────────────────────────
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function boxBlur(gs,W,H,r){
+  const tmp=new Float32Array(W*H),out=new Float32Array(W*H);
+  for(let y=0;y<H;y++){let s=0,cnt=0;
+    for(let x=0;x<r&&x<W;x++){s+=gs[y*W+x];cnt++}
+    for(let x=0;x<W;x++){if(x+r<W){s+=gs[y*W+x+r];cnt++}if(x-r-1>=0){s-=gs[y*W+x-r-1];cnt--}tmp[y*W+x]=s/cnt;}
+  }
+  for(let x=0;x<W;x++){let s=0,cnt=0;
+    for(let y=0;y<r&&y<H;y++){s+=tmp[y*W+x];cnt++}
+    for(let y=0;y<H;y++){if(y+r<H){s+=tmp[(y+r)*W+x];cnt++}if(y-r-1>=0){s-=tmp[(y-r-1)*W+x];cnt--}out[y*W+x]=s/cnt;}
+  }
+  return out;
+}
+
 // ─── State ────────────────────────────────────────────────
 const F={persp:true,deskew:true,crop:true,bg:true,light:true,white:true,denoise:true,docmode:false};
 let pages=[],curPage=0,corners=null,dragging=-1,origImg=null;
@@ -1359,18 +1375,6 @@ function fixLighting(canvas){
     for(let c=0;c<3;c++)d.data[i*4+c]=clamp(Math.round(d.data[i*4+c]*sc),0,255);
   }
   ctx.putImageData(d,0,0);return canvas;
-}
-function boxBlur(gs,W,H,r){
-  const tmp=new Float32Array(W*H),out=new Float32Array(W*H);
-  for(let y=0;y<H;y++){let s=0,cnt=0;
-    for(let x=0;x<r&&x<W;x++){s+=gs[y*W+x];cnt++}
-    for(let x=0;x<W;x++){if(x+r<W){s+=gs[y*W+x+r];cnt++}if(x-r-1>=0){s-=gs[y*W+x-r-1];cnt--}tmp[y*W+x]=s/cnt;}
-  }
-  for(let x=0;x<W;x++){let s=0,cnt=0;
-    for(let y=0;y<r&&y<H;y++){s+=tmp[y*W+x];cnt++}
-    for(let y=0;y<H;y++){if(y+r<H){s+=tmp[(y+r)*W+x];cnt++}if(y-r-1>=0){s-=tmp[(y-r-1)*W+x];cnt--}out[y*W+x]=s/cnt;}
-  }
-  return out;
 }
 function whitenPaper(canvas){
   const W=canvas.width,H=canvas.height,ctx=canvas.getContext('2d');
@@ -2233,7 +2237,6 @@ async function enhSave() {
   btn.disabled = false;
   document.getElementById('enh-overlay').classList.remove('vis');
 }
-function delay(ms){return new Promise(r=>setTimeout(r,ms))}
 
 // ─── PNG to PDF ───────────────────────────────────────────
 let p2pImages = []; // [{dataURL, name, img}]
