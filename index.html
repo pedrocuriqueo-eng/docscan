@@ -265,6 +265,16 @@ footer{text-align:center;padding:36px 0 28px;color:var(--muted);font-size:11px;b
 .mode-pill-icon{font-size:18px;display:block;margin-bottom:3px}
 .mode-pill-name{font-size:11px;font-weight:600;color:var(--muted)}
 .mode-pill.active .mode-pill-name{color:#ff9f43}
+.mode-pill.mode-uhd{border-color:rgba(95,255,202,.2)}
+.mode-pill.mode-uhd:hover{border-color:var(--accent)}
+.mode-pill.mode-uhd.active{border-color:var(--accent);background:rgba(95,255,202,.08)}
+.mode-pill.mode-uhd.active .mode-pill-name{color:var(--accent)}
+.mode-pill.mode-ai{border-color:rgba(123,95,255,.2);position:relative;overflow:hidden}
+.mode-pill.mode-ai::before{content:'AI';position:absolute;top:3px;right:5px;font-size:8px;font-weight:700;color:var(--a2);font-family:'DM Mono',monospace;opacity:.7}
+.mode-pill.mode-ai:hover{border-color:var(--a2)}
+.mode-pill.mode-ai.active{border-color:var(--a2);background:rgba(123,95,255,.1);animation:ai-pulse 2s ease-in-out infinite}
+.mode-pill.mode-ai.active .mode-pill-name{color:var(--a2)}
+@keyframes ai-pulse{0%,100%{box-shadow:0 0 0 0 rgba(123,95,255,.0)}50%{box-shadow:0 0 8px 2px rgba(123,95,255,.25)}}
 
 /* Sliders */
 .enh-sgroup{display:flex;flex-direction:column;gap:11px}
@@ -471,6 +481,20 @@ footer{text-align:center;padding:36px 0 28px;color:var(--muted);font-size:11px;b
             <span class="mode-pill-icon">🎛️</span>
             <span class="mode-pill-name">Manual</span>
           </div>
+          <div class="mode-pill mode-uhd" id="em-uhd" onclick="enhMode('uhd')">
+            <span class="mode-pill-icon">🖥️</span>
+            <span class="mode-pill-name">Ultra HD</span>
+          </div>
+          <div class="mode-pill mode-ai" id="em-ai" onclick="enhMode('ai')">
+            <span class="mode-pill-icon">🤖</span>
+            <span class="mode-pill-name">AI Ultra HD</span>
+          </div>
+        </div>
+
+        <!-- AI status box -->
+        <div id="ai-status-box" style="display:none;margin-top:10px;background:rgba(95,255,202,.06);border:1px solid rgba(95,255,202,.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted);line-height:1.6">
+          <div id="ai-status-txt" style="color:var(--accent)">⏳ Analizando imagen con IA...</div>
+          <div id="ai-suggestion" style="margin-top:6px;display:none"></div>
         </div>
       </div>
 
@@ -1850,6 +1874,8 @@ const ENH_MODES = {
   lowlight: { bright:50, contrast:10, sharp:20, sat:10,  temp:-10, denoise:50, shadows:60,  whites:0  },
   restore:  { bright:15, contrast:20, sharp:50, sat:5,   temp:0,   denoise:60, shadows:20,  whites:15 },
   manual:   { bright:0,  contrast:0,  sharp:0,  sat:0,   temp:0,   denoise:0,  shadows:0,   whites:0  },
+  uhd:      { bright:8,  contrast:25, sharp:80, sat:15,  temp:5,   denoise:10, shadows:12,  whites:12 },
+  ai:       { bright:0,  contrast:0,  sharp:0,  sat:0,   temp:0,   denoise:0,  shadows:0,   whites:0  },
 };
 
 document.getElementById('enhanceinput').addEventListener('change', e => {
@@ -1916,11 +1942,24 @@ function loadEnhImage(idx) {
 function enhMode(mode) {
   // Highlight selected pill
   document.querySelectorAll('.mode-pill').forEach(p => p.classList.remove('active'));
-  document.getElementById('em-' + mode).classList.add('active');
-  // Set sliders
-  const preset = ENH_MODES[mode];
+  const pill = document.getElementById('em-' + mode);
+  if (pill) pill.classList.add('active');
+
+  // Handle AI mode specially
+  const aiBox = document.getElementById('ai-status-box');
+  const aiSug = document.getElementById('ai-suggestion');
+  if (mode === 'ai') {
+    aiBox.style.display = 'block';
+    aiSug.style.display = 'none';
+    document.getElementById('ai-status-txt').textContent = '⏳ Analizando imagen con IA...';
+    analyzeWithAI();
+    return;
+  }
+  aiBox.style.display = 'none';
+
+  // Set sliders from preset
+  const preset = ENH_MODES[mode] || ENH_MODES.manual;
   Object.assign(enhParams, preset);
-  // Update UI
   Object.entries(preset).forEach(([k, v]) => {
     const sl = document.getElementById('er-' + k);
     const vl = document.getElementById('ev-' + k);
@@ -1930,7 +1969,96 @@ function enhMode(mode) {
   scheduleApply();
 }
 
-function enhSlider(key, val) {
+async function analyzeWithAI() {
+  if (!enhImgs.length) return;
+  const { img, url } = enhImgs[enhCurIdx];
+  const statusTxt = document.getElementById('ai-status-txt');
+  const aiSug = document.getElementById('ai-suggestion');
+
+  try {
+    // Resize image for API (max 800px)
+    const tmp = document.createElement('canvas');
+    const sc = Math.min(800 / img.naturalWidth, 800 / img.naturalHeight, 1);
+    tmp.width = Math.round(img.naturalWidth * sc);
+    tmp.height = Math.round(img.naturalHeight * sc);
+    tmp.getContext('2d').drawImage(img, 0, 0, tmp.width, tmp.height);
+    const b64 = tmp.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+    statusTxt.textContent = '🤖 Claude analizando la imagen...';
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: 'image/jpeg', data: b64 }
+            },
+            {
+              type: 'text',
+              text: `Analiza esta imagen y recomienda ajustes óptimos para mejorarla.
+Responde SOLO en JSON sin texto extra ni markdown:
+{
+  "tipo": "documento|foto|mixto",
+  "problemas": ["problema1","problema2"],
+  "params": {
+    "bright": -100 a 100,
+    "contrast": -100 a 100,
+    "sharp": 0 a 100,
+    "sat": -100 a 100,
+    "temp": -100 a 100,
+    "denoise": 0 a 100,
+    "shadows": -100 a 100,
+    "whites": -100 a 100
+  },
+  "resumen": "descripción breve de la mejora en español (max 80 chars)"
+}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await resp.json();
+    const raw = data.content?.[0]?.text || '';
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    } catch {
+      throw new Error('Respuesta IA inválida');
+    }
+
+    // Apply AI-recommended params
+    const p = parsed.params;
+    Object.assign(enhParams, p);
+    Object.entries(p).forEach(([k, v]) => {
+      const sl = document.getElementById('er-' + k);
+      const vl = document.getElementById('ev-' + k);
+      if (sl) sl.value = v;
+      if (vl) vl.textContent = v > 0 ? '+' + v : v;
+    });
+
+    statusTxt.innerHTML = `✅ <strong style="color:var(--accent)">AI Ultra HD aplicado</strong>`;
+    aiSug.style.display = 'block';
+    const problemas = parsed.problemas?.length ? `<div style="margin-top:4px;color:var(--muted)">Detectado: ${parsed.problemas.join(', ')}</div>` : '';
+    aiSug.innerHTML = `<div style="color:var(--text)">${parsed.resumen}</div>${problemas}`;
+
+    scheduleApply();
+
+  } catch (err) {
+    statusTxt.innerHTML = `⚠️ <span style="color:var(--a4)">Sin conexión — aplicando Ultra HD local</span>`;
+    aiSug.style.display = 'block';
+    aiSug.innerHTML = `<span style="color:var(--muted)">Usando mejoras de alta calidad sin IA</span>`;
+    // Fallback to UHD preset
+    enhMode('uhd');
+  }
+}
   enhParams[key] = parseInt(val);
   const vl = document.getElementById('ev-' + key);
   if (vl) vl.textContent = val > 0 ? '+' + val : val;
