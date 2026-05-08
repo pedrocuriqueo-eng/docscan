@@ -2357,12 +2357,8 @@ async function generateP2PPDF() {
   const margin = parseInt(document.getElementById('p2p-margin').value);
   const filename = (document.getElementById('p2p-filename').value.trim() || 'documento') + '.pdf';
 
-  // Page size map (mm)
-  const sizes = {
-    a4: [210, 297], letter: [215.9, 279.4], a3: [297, 420], auto: null
-  };
+  const sizes = { a4:[210,297], letter:[215.9,279.4], a3:[297,420], auto:null };
   const baseSize = sizes[sizeKey];
-
   let doc = null;
 
   for (let i = 0; i < p2pImages.length; i++) {
@@ -2370,20 +2366,61 @@ async function generateP2PPDF() {
     txt.textContent = `Procesando imagen ${i+1} de ${p2pImages.length}...`;
     await delay(10);
 
-    const { img, dataURL } = p2pImages[i];
-    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const { img } = p2pImages[i];
 
-    // Determine page size & orientation
+    // ── Auto-crop white/light border from image ──────────
+    const tmpC = document.createElement('canvas');
+    tmpC.width = img.naturalWidth; tmpC.height = img.naturalHeight;
+    const tmpCtx = tmpC.getContext('2d');
+    tmpCtx.drawImage(img, 0, 0);
+    const d = tmpCtx.getImageData(0, 0, tmpC.width, tmpC.height).data;
+    const W = tmpC.width, H = tmpC.height;
+
+    function isBright(x, y) {
+      const i = (y * W + x) * 4;
+      return d[i] > 235 && d[i+1] > 235 && d[i+2] > 235;
+    }
+
+    let ct = 0, cb = H-1, cl = 0, cr = W-1;
+    // Top
+    outer: for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) if (!isBright(x, y)) { ct = y; break outer; }
+    }
+    // Bottom
+    outer: for (let y = H-1; y >= 0; y--) {
+      for (let x = 0; x < W; x++) if (!isBright(x, y)) { cb = y; break outer; }
+    }
+    // Left
+    outer: for (let x = 0; x < W; x++) {
+      for (let y = 0; y < H; y++) if (!isBright(x, y)) { cl = x; break outer; }
+    }
+    // Right
+    outer: for (let x = W-1; x >= 0; x--) {
+      for (let y = 0; y < H; y++) if (!isBright(x, y)) { cr = x; break outer; }
+    }
+
+    // Add tiny padding (2px) so nothing is clipped
+    const pad = 2;
+    ct = Math.max(0, ct - pad); cb = Math.min(H-1, cb + pad);
+    cl = Math.max(0, cl - pad); cr = Math.min(W-1, cr + pad);
+    const cw = cr - cl, ch = cb - ct;
+
+    // Draw cropped image to new canvas
+    const cropC = document.createElement('canvas');
+    cropC.width = cw; cropC.height = ch;
+    cropC.getContext('2d').drawImage(tmpC, cl, ct, cw, ch, 0, 0, cw, ch);
+    const croppedURL = cropC.toDataURL('image/png');
+    const iw = cw, ih = ch;
+
+    // ── Determine page size ───────────────────────────────
     let pw, ph;
     if (sizeKey === 'auto') {
-      // Convert px to mm (96dpi → mm: px * 25.4 / 96)
-      pw = iw * 25.4 / 96;
-      ph = ih * 25.4 / 96;
+      pw = iw * 25.4 / 150; // assume 150dpi scan
+      ph = ih * 25.4 / 150;
     } else {
       [pw, ph] = [...baseSize];
     }
 
-    // Apply orientation
     let orient;
     if (orientPref === 'auto') orient = iw > ih ? 'landscape' : 'portrait';
     else orient = orientPref;
@@ -2396,16 +2433,16 @@ async function generateP2PPDF() {
       doc.addPage([pw, ph], orient);
     }
 
-    // Fit image within page minus margins
+    // ── Place image: fill page minus chosen margin ────────
     const maxW = pw - margin * 2;
     const maxH = ph - margin * 2;
     const ratio = Math.min(maxW / iw, maxH / ih);
     const rw = iw * ratio, rh = ih * ratio;
+    // Center on page
     const ox = margin + (maxW - rw) / 2;
     const oy = margin + (maxH - rh) / 2;
 
-    const fmt = dataURL.startsWith('data:image/jpeg') ? 'JPEG' : 'PNG';
-    doc.addImage(dataURL, fmt, ox, oy, rw, rh);
+    doc.addImage(croppedURL, 'PNG', ox, oy, rw, rh);
   }
 
   fill.style.width = '95%';
