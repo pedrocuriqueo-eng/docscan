@@ -2409,8 +2409,30 @@ async function generateP2PPDF() {
     const cropC = document.createElement('canvas');
     cropC.width = cw; cropC.height = ch;
     cropC.getContext('2d').drawImage(tmpC, cl, ct, cw, ch, 0, 0, cw, ch);
-    const croppedURL = cropC.toDataURL('image/png');
-    const iw = cw, ih = ch;
+
+    // ── Downscale if too large (max 2480px side = A4 at 300dpi) ──
+    const MAX_PX = 2480;
+    let finalC = cropC;
+    if (cw > MAX_PX || ch > MAX_PX) {
+      const sc = Math.min(MAX_PX / cw, MAX_PX / ch);
+      const sc2 = document.createElement('canvas');
+      sc2.width = Math.round(cw * sc);
+      sc2.height = Math.round(ch * sc);
+      sc2.getContext('2d').drawImage(cropC, 0, 0, sc2.width, sc2.height);
+      finalC = sc2;
+    }
+
+    // Use JPEG (much smaller) for color images, PNG for B&W docs
+    const imgData = finalC.getContext('2d').getImageData(0, 0, finalC.width, finalC.height);
+    let isGrayscale = true;
+    for (let p = 0; p < imgData.data.length; p += 16) {
+      const r = imgData.data[p], g = imgData.data[p+1], b = imgData.data[p+2];
+      if (Math.abs(r-g) > 10 || Math.abs(g-b) > 10) { isGrayscale = false; break; }
+    }
+    const croppedURL = isGrayscale
+      ? finalC.toDataURL('image/jpeg', 0.92)  // B&W docs → JPEG lighter
+      : finalC.toDataURL('image/jpeg', 0.88); // Color → JPEG
+    const iw = finalC.width, ih = finalC.height;
 
     // ── Determine page size ───────────────────────────────
     let pw, ph;
@@ -2442,7 +2464,7 @@ async function generateP2PPDF() {
     const ox = margin + (maxW - rw) / 2;
     const oy = margin + (maxH - rh) / 2;
 
-    doc.addImage(croppedURL, 'PNG', ox, oy, rw, rh);
+    doc.addImage(croppedURL, 'JPEG', ox, oy, rw, rh);
   }
 
   fill.style.width = '95%';
