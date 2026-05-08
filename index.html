@@ -2059,6 +2059,8 @@ Responde SOLO en JSON sin texto extra ni markdown:
     enhMode('uhd');
   }
 }
+
+function enhSlider(key, val) {
   enhParams[key] = parseInt(val);
   const vl = document.getElementById('ev-' + key);
   if (vl) vl.textContent = val > 0 ? '+' + val : val;
